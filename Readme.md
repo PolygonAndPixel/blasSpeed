@@ -13,4 +13,3 @@ will need to use:
 The time is used from the CPU clock and may differ from realtime but since most of the
 time is running on the CPU, I prefer this way. If you have a different opinion, feel
 free to use `time()`.
-Please note the different representation for the matrices and the vector for OpenBLAS.

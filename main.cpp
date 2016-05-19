@@ -66,11 +66,7 @@ int main()
     double C[3][3][2];
     double V[3][2];
     double W[3][2];
-    double A2[18];
-    double B2[18];
-    double C2[18];
-    double V2[6];
-    double W2[6];
+
     // Generate some random numbers
     for(int i=0; i<3; i++)
     {
@@ -79,11 +75,8 @@ int main()
             for(int k=0; k<2; k++)
             {
                 A[i][j][k] = fRand(0,1000);
-                A2[k + j*2 + i*6] = A[i][j][k];
                 B[i][j][k] = fRand(0,1000);
-                B2[k + j*2 + i*6] = B[i][j][k];
                 C[i][j][k] = 0.0;
-                C2[k + j*2 + i*6] = 0.0;
             }
         }
     }
@@ -92,7 +85,6 @@ int main()
         for(int j=0; j<2; j++)
         {
             V[i][j] = fRand(0,1000);
-            V2[i*2+j] = V[i][j];
         }
     }
     
@@ -116,11 +108,14 @@ int main()
     double elapsed_mosc3_mv = double(end-begin)/CLOCKS_PER_SEC;
     
     ////////////// Calculate with OpenBlas 
-    begin = clock();
-    // MxM
     double alpha[2];
     alpha[0] = 1.0;
     alpha[1] = 0.0;
+    double beta[2];
+    beta[0] = 0.0;
+    beta[1] = 0.0;
+    begin = clock();
+    // MxM
     for(int i=0; i<rounds; i++)
     {
         // Reference: http://www.netlib.org/lapack/explore-html/dc/d17/group__complex16__blas__level3.html#ga4ef748ade85e685b8b2241a7c56dd21c
@@ -133,21 +128,18 @@ int main()
         // columns of B2 and columns of C2,
         // columns of A2 and rows of B2
         // The '1' declare the first dimension of each matrix as declared in the calling program.
-        cblas_zgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, A_R, B_C, B_R, alpha, A2, A_C, B2, B_C, alpha, C2, B_C);
+        cblas_zgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, A_R, B_C, B_R, alpha, **A, A_C, **B, B_C, beta, **C, B_C);
     }
     end = clock();
     double elapsed_openBlas_mm = double(end-begin)/CLOCKS_PER_SEC;
     
     begin = clock();
     // MxV
-    double beta[2];
-    beta[0] = 0.0;
-    beta[1] = 0.0;
     int stepSize = 1;
     for(int i=0; i<rounds; i++)
     {
         // Reference: http://www.netlib.org/lapack/explore-html/dc/dc1/group__complex16__blas__level2.html#gafaeb2abd9fffa7442b938dc384aeaf47
-        cblas_zgemv(CblasRowMajor, CblasNoTrans, A_R, A_C, alpha, A2, A_C, V2, stepSize, beta, W2, stepSize);
+        cblas_zgemv(CblasRowMajor, CblasNoTrans, A_R, A_C, alpha, **A, A_C, *V, stepSize, beta, *W, stepSize);
     }
     end = clock();
     double elapsed_openBlas_mv = double(end-begin)/CLOCKS_PER_SEC;
